@@ -208,7 +208,7 @@ impl Backend {
                 Ok(engine) => {
                     *this.transcriber.lock().unwrap() = Some(engine);
                     let mut view = this.view.lock().unwrap();
-                    view.audio_ready = true; view.audio_status = "Whisper small · видеокарта · готов".into();
+                    view.audio_ready = true; view.audio_status = "Whisper small готов".into();
                 }
                 Err(error) => {
                     let mut view = this.view.lock().unwrap();
@@ -733,12 +733,19 @@ fn connect_provider(provider: ProviderId, app: tauri::AppHandle, backend: State<
         this.begin_provider(provider)?; this.emit(&app);
         tauri::async_runtime::spawn(async move {
             if this.closing.load(Ordering::Acquire) || this.close_requested.load(Ordering::Acquire) { return; }
+            #[cfg(windows)]
             let executable = std::env::var_os("LOCALAPPDATA").map(PathBuf::from)
                 .map(|root| root.join("Programs/antigravity/Antigravity.exe"));
+            #[cfg(windows)]
             let opened = match executable.filter(|path| path.is_file()) {
                 Some(path) => app.opener().open_path(path.to_string_lossy().into_owned(), None::<&str>)
                     .map_err(|_| "Не удалось открыть Antigravity. Запусти официальный клиент и выполни вход.".to_owned()),
                 None => Err("Установи Antigravity, войди в аккаунт и нажми «Проверить вход».".into()),
+            };
+            #[cfg(target_os = "linux")]
+            let opened: Result<(), String> = match tokio::process::Command::new("gtk-launch").arg("antigravity").status().await {
+                Ok(status) if status.success() => Ok(()),
+                _ => Err("Открой Antigravity, войди в аккаунт и нажми «Проверить вход».".into()),
             };
             let mut view = this.view.lock().unwrap(); let state = Backend::provider_ui(&mut view, provider);
             state.loading = false; state.auth_pending = opened.is_ok();
@@ -939,11 +946,17 @@ fn show_main_window(app: &tauri::AppHandle) -> Result<(), String> {
     window.unminimize().map_err(|_| "Не удалось развернуть окно")?;
     window.show().map_err(|_| "Не удалось показать окно")?;
     window.set_focus().map_err(|_| "Не удалось активировать окно")?;
+    #[cfg(windows)]
     window.set_skip_taskbar(true).map_err(|_| "Не удалось скрыть значок панели задач")?;
     Ok(())
 }
 
 fn install_hotkeys(app: &tauri::AppHandle, backend: &Arc<Backend>) {
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("WAYLAND_DISPLAY").is_some() && std::env::var("GDK_BACKEND").as_deref() != Ok("x11") {
+        backend.view.lock().unwrap().hotkey_error = Some("В Wayland открой настройки или создай комнату кнопкой в окне. Глобальные сочетания доступны в X11.".into());
+        return;
+    }
     let listener = backend.clone();
     let plugin = tauri_plugin_global_shortcut::Builder::new().with_handler(move |app, shortcut, event| {
         let Some(action) = hotkeys::action(shortcut, event.state()) else { return; };
@@ -1027,10 +1040,13 @@ pub fn run() {
             let mut settings = fs::read(&settings_file).ok().and_then(|bytes| serde_json::from_slice::<Settings>(&bytes).ok())
                 .filter(|s| s.validate().is_ok()).unwrap_or_else(|| Settings::defaults(&workspace));
             let resource_dir = app.path().resource_dir()?;
+            #[cfg(windows)]
             let bundled_agy = resource_dir.join("vendor/agy.exe");
+            #[cfg(windows)]
             if (!settings_file.exists() || !Path::new(&settings.antigravity_path).is_file()) && bundled_agy.is_file() {
                 settings.antigravity_path = bundled_agy.to_string_lossy().into();
             }
+            #[cfg(windows)]
             if !settings_file.exists() {
                 if let Ok(bytes) = fs::read(workspace.join("identityproxy-prototype/runtime/state.json")) {
                     if let Ok(old) = serde_json::from_slice::<serde_json::Value>(&bytes) {
@@ -1044,6 +1060,7 @@ pub fn run() {
             }
             let registration_dir = config_dir.join("chatgpt");
             fs::create_dir_all(&registration_dir)?;
+            #[cfg(windows)]
             for (file, key) in [("registration.json", "client_id"), ("host-id.json", "ext_agent_host_id")] {
                 let destination = registration_dir.join(file);
                 if !destination.exists() {
@@ -1077,12 +1094,14 @@ pub fn run() {
             });
             app.manage(backend.clone());
             let window = app.get_webview_window("main").ok_or("Окно приложения не создано")?;
-            let appearance = { let view = backend.view.lock().unwrap(); (view.settings.hide_from_capture, view.settings.window_opacity) };
-            // Apply privacy before showing any conversation titles; startup fails closed on native errors.
-            window_appearance::apply(&window, appearance.0, appearance.1)?;
-            backend.view.lock().unwrap().window_appearance_applied = true;
+            #[cfg(windows)]
+            {
+                let appearance = { let view = backend.view.lock().unwrap(); (view.settings.hide_from_capture, view.settings.window_opacity) };
+                window_appearance::apply(&window, appearance.0, appearance.1)?;
+                window.set_skip_taskbar(true)?;
+                backend.view.lock().unwrap().window_appearance_applied = true;
+            }
             window.show()?;
-            window.set_skip_taskbar(true)?;
             install_hotkeys(app.handle(), &backend);
             backend.prepare_audio(app.handle().clone());
             for provider in [ProviderId::Antigravity, ProviderId::Claude] {

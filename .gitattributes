@@ -1,0 +1,2 @@
+src-tauri/linux/while-we-talk-setup-whisper text eol=lf
+*.sh text eol=lf

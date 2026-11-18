@@ -15,7 +15,9 @@ export function ControlsDialog({ open, state, connected, pending, run, changingS
     <div className="dialog-heading"><h2 id="controls-title">Настройки</h2><button className="icon-button" type="button" aria-label="Закрыть настройки" onClick={onClose}><Icon name="close" /></button></div>
     {error && <div className="error-banner" role="alert"><span>{error}</span><button className="icon-button" type="button" aria-label="Закрыть сообщение об ошибке" onClick={onDismissError}><Icon name="close" size={16} /></button></div>}
     <div className="controls-dialog-grid"><SourcePanel state={state} locked={!connected || state.listening || state.busy || state.summaryBusy || changingSettings || pending.has('start_listening') || pending.has('stop_listening')} change={onChange} /><ProviderPanel state={state} run={run} pending={pending} connected={connected} change={onChange} onConnections={onConnections} /></div>
-    <WindowAppearancePanel settings={state.settings} applied={state.windowAppearanceApplied} connected={connected} run={run} />
+    {state.platform === 'linux'
+      ? <p className="field-note">В Linux окно видно при демонстрации всего экрана. Для звонка выбери нужное окно в программе демонстрации.</p>
+      : <WindowAppearancePanel settings={state.settings} applied={state.windowAppearanceApplied} connected={connected} run={run} />}
     <div className="hotkeys-help" role="group" aria-label="Горячие клавиши">
       <div className="hotkeys-list"><span><kbd>Ctrl+Alt+M</kbd> Настройки</span><span><kbd>Ctrl+Alt+N</kbd> Новая комната</span></div>
       <p>Работают, пока приложение запущено.</p>

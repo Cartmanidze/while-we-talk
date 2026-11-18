@@ -1,4 +1,4 @@
-"""GPU inference only. Rust owns devices, phrase boundaries, context and providers."""
+"""Local inference. Rust owns devices, phrase boundaries, context and providers."""
 import argparse
 import json
 import math
@@ -30,9 +30,11 @@ class WhisperInference:
     def __init__(self, cuda_lib_dir):
         self.model = None
         self.dll_handles = []
-        library_root = Path(cuda_lib_dir) / 'nvidia'
+        self.device = 'cuda' if sys.platform == 'win32' else 'cpu'
         for name in ('cublas', 'cudnn'):
-            directory = library_root / name / 'bin'
+            if self.device != 'cuda' or not cuda_lib_dir:
+                break
+            directory = Path(cuda_lib_dir) / 'nvidia' / name / 'bin'
             if directory.is_dir():
                 os.environ['PATH'] = str(directory) + os.pathsep + os.environ.get('PATH', '')
                 self.dll_handles.append(os.add_dll_directory(str(directory)))
@@ -45,7 +47,8 @@ class WhisperInference:
         started = time.perf_counter()
         import numpy as np
         from faster_whisper import WhisperModel
-        model = WhisperModel('small', device='cuda', compute_type='float16', cpu_threads=8, local_files_only=True)
+        model = WhisperModel('small', device=self.device, compute_type='float16' if self.device == 'cuda' else 'int8',
+                             cpu_threads=8, local_files_only=True)
         loaded = time.perf_counter()
         segments, _ = model.transcribe(np.zeros(16000, dtype=np.float32), language='ru', beam_size=1,
                                        vad_filter=False, condition_on_previous_text=False)
@@ -69,14 +72,14 @@ class WhisperInference:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cuda-lib-dir', required=True)
+    parser.add_argument('--cuda-lib-dir', required=sys.platform == 'win32')
     options = parser.parse_args()
     worker = WhisperInference(options.cuda_lib_dir)
 
     def emit(value):
         print(json.dumps(value, ensure_ascii=False, allow_nan=False), flush=True)
 
-    emit({'type': 'ready', 'engine': 'faster-whisper', 'device': 'cuda', 'model': 'small'})
+    emit({'type': 'ready', 'engine': 'faster-whisper', 'device': worker.device, 'model': 'small'})
     while True:
         header = sys.stdin.buffer.readline(4097)
         if not header:

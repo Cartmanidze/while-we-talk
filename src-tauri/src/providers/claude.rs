@@ -39,6 +39,11 @@ fn allowed_env(key: &std::ffi::OsStr) -> bool {
         "PATHEXT",
         "USERPROFILE",
         "HOME",
+        "DISPLAY",
+        "WAYLAND_DISPLAY",
+        "XDG_RUNTIME_DIR",
+        "DBUS_SESSION_BUS_ADDRESS",
+        "XAUTHORITY",
         "HOMEDRIVE",
         "HOMEPATH",
         "APPDATA",
@@ -136,7 +141,7 @@ async fn bounded_output(
         .stdout(Stdio::piped())
         .spawn()
         .map_err(|_| {
-            "Не удалось запустить официальный Claude Code. Проверь путь к claude.exe".to_string()
+            "Не удалось запустить Claude Code. Проверь путь к программе в настройках.".to_string()
         })?;
     let output = child
         .stdout
@@ -219,6 +224,8 @@ fn parse_auth(bytes: &[u8]) -> Result<Option<String>, String> {
 
 fn require_unmanaged_environment() -> Result<(), String> {
     let mut roots = std::collections::HashSet::new();
+    #[cfg(target_os = "linux")]
+    roots.insert(PathBuf::from("/etc/claude-code"));
     for name in [
         "ProgramFiles",
         "ProgramW6432",

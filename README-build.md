@@ -1,4 +1,20 @@
-# Сборка While We Talk для этого ноутбука
+# Сборка While We Talk
+
+## Linux x86‑64
+
+Сборка проверена в Ubuntu 22.04 x86‑64 с Rust 1.100 и Node.js 20.19.5. Понадобятся npm и системные библиотеки Tauri. [Зависимости Tauri для Linux](https://v2.tauri.app/start/prerequisites/).
+
+```sh
+sudo apt install build-essential pkg-config libwebkit2gtk-4.1-dev libayatana-appindicator3-dev libssl-dev librsvg2-dev libxdo-dev
+npm ci
+npm run tauri -- build --bundles deb
+```
+
+Готовый пакет появится в `src-tauri/target/release/bundle/deb/`. Для распознавания после установки запусти `while-we-talk-setup-whisper` от обычного пользователя. Модель хранится в кэше Hugging Face, Python — в `~/.local/share/while-we-talk/whisper`.
+
+Для проверки обоих входов установи `pulseaudio`, `pulseaudio-utils` и `espeak-ng`, подготовь Whisper и запусти `scripts/test-linux-audio.sh`. Проверка создаёт отдельный звуковой сервер, произносит тестовую фразу в два виртуальных устройства и распознаёт оба результата.
+
+## Windows x64
 
 Это приложение Rust/Tauri с локальным распознаванием речи. Захват звука, выделение фраз, контекст и подключения моделей выполняются в Rust. **Python используется только как отдельный процесс вычислений Whisper на видеокарте.**
 
@@ -10,7 +26,7 @@
 .\Build.ps1 -Installer
 ```
 
-Готовый файл — `installer-dist\WhileWeTalk-0.2.2-x64-setup.exe`. Для первой сборки нужны интернет для загрузки NSIS и подписанный Google клиент `vendor\agy.exe`. Установщик содержит приложение, модуль Whisper и `agy.exe`. При отсутствии WebView2 мастер установки скачивает его.
+Готовый файл — `installer-dist\WhileWeTalk-0.3.0-x64-setup.exe`. Для первой сборки нужны интернет для загрузки NSIS и подписанный Google клиент `vendor\agy.exe`. Установщик содержит приложение, модуль Whisper и `agy.exe`. При отсутствии WebView2 мастер установки скачивает его.
 
 Перед установкой закройте While We Talk или прежнюю версию под названием «Собеседник». После установки выберите While We Talk в меню «Пуск». Комнаты и настройки хранятся в прежней папке `%APPDATA%\local.sobesednik.desktop`. Если удаляете старую версию через настройки Windows, оставьте флажок удаления данных приложения снятым.
 

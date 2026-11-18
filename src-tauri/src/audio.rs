@@ -3,7 +3,15 @@ use std::sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{self, Receive
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 use std::io::Write;
+#[cfg(windows)]
 use wasapi::{DeviceEnumerator, Direction, SampleType, StreamMode, WaveFormat};
+#[cfg(target_os = "linux")]
+#[path = "audio_linux.rs"]
+mod linux;
+#[cfg(target_os = "linux")]
+pub use linux::enumerate_devices;
+#[cfg(target_os = "linux")]
+use linux::capture_device;
 
 pub const SAMPLE_RATE: u32 = 16_000;
 
@@ -139,15 +147,19 @@ fn audio_diagnostic(value: serde_json::Value) {
     }
 }
 
+#[cfg(windows)]
 struct ComApartment;
+#[cfg(windows)]
 impl ComApartment {
     fn new() -> Result<Self, String> {
         wasapi::initialize_mta().ok().map_err(|e| format!("Не удалось открыть аудиосистему: {e}"))?;
         Ok(Self)
     }
 }
+#[cfg(windows)]
 impl Drop for ComApartment { fn drop(&mut self) { wasapi::deinitialize(); } }
 
+#[cfg(windows)]
 pub fn enumerate_devices() -> Result<DeviceCatalog, String> {
     // COM is initialized on a dedicated thread, independent of Tauri's UI apartment.
     thread::spawn(|| {
@@ -278,6 +290,7 @@ fn recover_discontinuity(tx: &SyncSender<AudioEvent>, splitter: &mut Segmenter, 
     Ok(())
 }
 
+#[cfg(windows)]
 fn capture_device(source: AudioSource, id: &str, tx: &SyncSender<AudioEvent>, ready: &mpsc::Sender<Result<(), String>>, stop: &AtomicBool) -> Result<(), String> {
     let _com = ComApartment::new()?;
     let enumerator = DeviceEnumerator::new().map_err(|e| e.to_string())?;

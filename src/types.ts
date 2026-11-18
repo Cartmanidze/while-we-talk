@@ -59,6 +59,7 @@ export interface AppState {
   menuRequestId: number;
   hotkeyError: string | null;
   windowAppearanceApplied: boolean;
+  platform?: string;
   rooms: RoomInfo[];
   trashRooms: RoomTrashInfo[];
   deletionNotice: string | null;

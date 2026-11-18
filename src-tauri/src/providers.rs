@@ -284,7 +284,7 @@ fn validate_prompt(prompt: &str, window: Option<usize>) -> Result<(), String> {
 fn codex_context_window(model: &str) -> Option<usize> {
     let directory = std::env::var_os("CODEX_HOME")
         .map(PathBuf::from)
-        .or_else(|| std::env::var_os("USERPROFILE").map(|p| PathBuf::from(p).join(".codex")))?;
+        .or_else(|| std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" }).map(|p| PathBuf::from(p).join(".codex")))?;
     context_window_from_cache(&directory, model)
 }
 fn context_window_from_cache(directory: &std::path::Path, model: &str) -> Option<usize> {

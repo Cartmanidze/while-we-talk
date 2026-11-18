@@ -33,12 +33,18 @@ pub struct Transcriber {
 
 impl Transcriber {
     pub fn new(python_path: &Path, worker_path: &Path, cuda_lib_dir: &Path) -> Result<Self, String> {
+        #[cfg(target_os = "linux")]
+        if !python_path.is_file() || !worker_path.is_file() {
+            return Err("Для расшифровки установи Whisper командой while-we-talk-setup-whisper и перезапусти приложение.".into());
+        }
+        #[cfg(windows)]
         if !python_path.is_file() || !worker_path.is_file() || !cuda_lib_dir.is_dir() {
             return Err("Проверь пути к Python, локальному Whisper и библиотекам CUDA".into());
         }
         let mut command = Command::new(python_path);
-        command.args(["-X", "utf8", "-u"]).arg(worker_path).arg("--cuda-lib-dir").arg(cuda_lib_dir)
-            .env("PYTHONUTF8", "1").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null());
+        command.args(["-X", "utf8", "-u"]).arg(worker_path);
+        if cfg!(windows) { command.arg("--cuda-lib-dir").arg(cuda_lib_dir); }
+        command.env("PYTHONUTF8", "1").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null());
         #[cfg(windows)]
         command.creation_flags(0x08000000);
         let mut child = command.spawn().map_err(|e| format!("Не удалось запустить локальный Whisper: {e}"))?;

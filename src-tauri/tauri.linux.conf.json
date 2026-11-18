@@ -1,0 +1,12 @@
+{
+  "bundle": {
+    "targets": ["deb"],
+    "category": "Productivity",
+    "linux": {
+      "deb": {
+        "depends": ["pulseaudio-utils", "python3-venv", "libgtk-3-bin"],
+        "files": { "/usr/bin/while-we-talk-setup-whisper": "linux/while-we-talk-setup-whisper" }
+      }
+    }
+  }
+}

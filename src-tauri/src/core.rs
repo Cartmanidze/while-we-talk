@@ -26,11 +26,20 @@ pub struct Settings {
     pub window_opacity: u8,
 }
 
-fn default_hide_from_capture() -> bool { true }
+fn default_hide_from_capture() -> bool { cfg!(windows) }
 fn default_window_opacity() -> u8 { 100 }
 fn default_claude_path() -> String {
+    #[cfg(target_os = "linux")]
+    return linux_cli("claude");
+    #[cfg(windows)]
     std::env::var_os("USERPROFILE").map(std::path::PathBuf::from).unwrap_or_default()
         .join(".local/bin/claude.exe").to_string_lossy().into_owned()
+}
+
+#[cfg(target_os = "linux")]
+fn linux_cli(name: &str) -> String {
+    let local = std::env::var_os("HOME").map(std::path::PathBuf::from).map(|p| p.join(".local/bin").join(name));
+    local.filter(|p| p.is_file()).map(|p| p.to_string_lossy().into_owned()).unwrap_or_else(|| name.into())
 }
 
 impl Settings {
@@ -38,12 +47,22 @@ impl Settings {
         Self {
             mic_enabled: true, system_enabled: true, mic_device_id: None, system_device_id: None,
             provider: "chatgpt".into(),
+            #[cfg(windows)]
             antigravity_path: workspace.join("identityproxy-prototype/vendor/antigravity/agy.exe").to_string_lossy().into(),
+            #[cfg(target_os = "linux")]
+            antigravity_path: linux_cli("agy"),
             claude_path: default_claude_path(),
+            #[cfg(windows)]
             python_path: r"C:\Python314\python.exe".into(),
+            #[cfg(target_os = "linux")]
+            python_path: std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
+                .join(".local/share/while-we-talk/whisper/bin/python").to_string_lossy().into(),
+            #[cfg(windows)]
             cuda_lib_path: workspace.join("identityproxy-feasibility-check/whisper/cuda-libs").to_string_lossy().into(),
+            #[cfg(target_os = "linux")]
+            cuda_lib_path: String::new(),
             chatgpt_model: None, antigravity_model: None, claude_model: None,
-            hide_from_capture: true, window_opacity: 100,
+            hide_from_capture: default_hide_from_capture(), window_opacity: 100,
         }
     }
     pub fn validate(&self) -> Result<(), String> {
@@ -53,7 +72,7 @@ impl Settings {
         if !["chatgpt", "antigravity", "claude"].contains(&self.provider.as_str()) {
             return Err("Неизвестный сервис".into());
         }
-        for path in [&self.python_path, &self.antigravity_path, &self.claude_path, &self.cuda_lib_path] {
+        for path in [&self.python_path, &self.antigravity_path, &self.claude_path, #[cfg(windows)] &self.cuda_lib_path] {
             if path.is_empty() || path.len() > 4000 || path.contains('\0') {
                 return Err("Проверь пути к программам в настройках".into());
             }
@@ -104,12 +123,13 @@ pub struct AppState {
     pub room_recoveries: Vec<crate::rooms::RoomRecoveryInfo>, pub recovery_notice: Option<String>,
     pub focus_entry_id: Option<String>,
     pub window_appearance_applied: bool,
+    pub platform: &'static str,
     pub menu_request_id: u64, pub hotkey_error: Option<String>,
     pub trash_rooms: Vec<crate::rooms::RoomTrashInfo>, pub deletion_notice: Option<String>,
 }
 impl AppState {
     pub fn new(settings: Settings) -> Self {
-        Self { listening: false, audio_ready: false, audio_status: "Подготовка Whisper на видеокарте…".into(),
+        Self { listening: false, audio_ready: false, audio_status: "Готовлю Whisper…".into(),
             busy: false, providers: ProviderStates::default(), settings, devices: Devices::default(),
             levels: Levels::default(), transcript: vec![], answer: AnswerState::default(), error: None,
             rooms: vec![], active_room_id: None, room_title: String::new(), room_summary: String::new(),
@@ -117,6 +137,7 @@ impl AppState {
             room_recoveries: vec![], recovery_notice: None,
             focus_entry_id: None,
             window_appearance_applied: false,
+            platform: std::env::consts::OS,
             menu_request_id: 0, hotkey_error: None,
             trash_rooms: vec![], deletion_notice: None,
             context_status: "История сохраняется целиком на этом компьютере".into() }
@@ -286,7 +307,7 @@ mod tests {
         legacy.as_object_mut().unwrap().remove("claudePath");
         legacy.as_object_mut().unwrap().remove("claudeModel");
         let restored: Settings = serde_json::from_value(legacy).unwrap();
-        assert!(restored.hide_from_capture);
+        assert_eq!(restored.hide_from_capture, cfg!(windows));
         assert_eq!(restored.window_opacity, 100);
         assert_eq!(restored.python_path, settings.python_path);
         assert_eq!(restored.claude_path, settings.claude_path);
