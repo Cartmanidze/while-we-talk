@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Собеседник",
-  "version": "0.2.1",
+  "productName": "While We Talk",
+  "version": "0.2.2",
   "identifier": "local.sobesednik.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [{
       "label": "main",
-      "title": "Собеседник",
+      "title": "While We Talk",
       "width": 1220,
       "height": 820,
       "minWidth": 900,
@@ -32,6 +32,7 @@
     "targets": ["nsis"],
     "resources": {"resources/whisper_worker.py": "resources/whisper_worker.py"},
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/icon.ico"],
+    "publisher": "While We Talk",
     "shortDescription": "Локальная расшифровка речи и ответы по подписке"
   }
 }

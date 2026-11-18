@@ -1,1 +1,1 @@
-{"name":"sobesednik-browser-checks","private":true,"type":"module","scripts":{"test":"playwright test"},"devDependencies":{"@playwright/test":"1.65.1"}}
+{"name":"while-we-talk-browser-checks","private":true,"type":"module","scripts":{"test":"playwright test"},"devDependencies":{"@playwright/test":"1.65.1"}}

@@ -1060,7 +1060,7 @@ pub fn run() {
             }
             let work_dir = config_dir.join("antigravity-work");
             let bundled_worker = resource_dir.join("resources/whisper_worker.py");
-            let worker_path = if bundled_worker.is_file() { bundled_worker } else { workspace.join("voice-assistant-rust/src-tauri/resources/whisper_worker.py") };
+            let worker_path = if bundled_worker.is_file() { bundled_worker } else { Path::new(env!("CARGO_MANIFEST_DIR")).join("resources/whisper_worker.py") };
             let clients = Arc::new(Providers::new(registration_dir, PathBuf::from(&settings.antigravity_path), work_dir, PathBuf::from(&settings.claude_path))?);
             let room_store = rooms::RoomStore::open(config_dir.join("rooms"))?;
             let mut initial_view = AppState::new(settings);
@@ -1105,7 +1105,7 @@ pub fn run() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("Не удалось запустить Собеседник");
+        .expect("Не удалось запустить While We Talk");
     app.run(|app, event| {
         if let tauri::RunEvent::Exit = event {
             if let Some(shortcuts) = app.try_state::<tauri_plugin_global_shortcut::GlobalShortcut<tauri::Wry>>() { let _ = shortcuts.unregister_all(); }

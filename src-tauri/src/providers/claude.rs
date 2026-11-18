@@ -496,7 +496,7 @@ impl Claude {
             .ok_or("Не удалось открыть вывод Claude Code")?;
         let message = json!({"type":"control_request","request_id":request_id,"request":{
             "subtype":"initialize","sdkMcpServers":[],"skills":[],"agents":{},
-            "promptSuggestions":false,"agentProgressSummaries":false,"title":"Собеседник: каталог"
+            "promptSuggestions":false,"agentProgressSummaries":false,"title":"While We Talk: каталог"
         }})
         .to_string()
             + "\n";

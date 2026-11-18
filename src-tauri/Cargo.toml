@@ -1,11 +1,11 @@
 [package]
-name = "sobesednik"
-version = "0.2.1"
+name = "while-we-talk"
+version = "0.2.2"
 description = "Local speech transcription and subscription-based assistance"
 edition = "2021"
 
 [lib]
-name = "sobesednik_lib"
+name = "while_we_talk_lib"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

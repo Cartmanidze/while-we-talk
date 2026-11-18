@@ -31,7 +31,7 @@ export function RoomsPanel({ rooms, trashRooms, deletionNotice, activeId, locked
   const visible = availableSearchHits(searching ? search.hits : ordered.map(room => ({ room, snippet: '', entryId: null })), trashRooms, deletionNotice);
   const toggleLabel = collapsed ? 'Развернуть список комнат' : 'Свернуть список комнат';
   return <aside className={`rooms-sidebar${collapsed ? ' is-collapsed' : ''}`} aria-label="Комнаты">
-    <div className="brand"><span className="brand-mark"><Icon name="wave" size={22} /></span><strong>Собеседник</strong></div>
+    <div className="brand"><span className="brand-mark"><Icon name="wave" size={22} /></span><strong>While We Talk</strong></div>
     <div className="rooms-heading"><h2>Комнаты</h2><span>{rooms.length}</span>
       <button className="icon-button rail-toggle" type="button" ref={toggle} aria-label={toggleLabel} aria-expanded={!collapsed} aria-controls="room-browser" title={toggleLabel} onClick={() => setCollapsed(!collapsed)}><Icon name="sidebar" size={18} /></button>
     </div>

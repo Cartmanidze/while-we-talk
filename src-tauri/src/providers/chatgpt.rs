@@ -387,7 +387,7 @@ async fn receive_callback(
             continue;
         }
         if fields[1] == "/complete" {
-            let body = "Можно вернуться в «Собеседник» и проверить вход.";
+            let body = "Можно вернуться в While We Talk и проверить вход.";
             let response=format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nCache-Control: no-store\r\nContent-Security-Policy: default-src 'none'\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",body.len());
             let _ = stream.write_all(response.as_bytes()).await;
             if let Some(code) = accepted_code {

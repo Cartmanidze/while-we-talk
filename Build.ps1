@@ -45,7 +45,7 @@ try {
         $package = Join-Path $targetRoot "release\bundle\nsis\$($config.productName)_$($config.version)_x64-setup.exe"
         if (-not (Test-Path -LiteralPath $package -PathType Leaf)) { throw "The Windows x64 installer was not found: $package" }
         New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
-        $setup = Join-Path $outputRoot "Sobesednik-$($config.version)-x64-setup.exe"
+        $setup = Join-Path $outputRoot "WhileWeTalk-$($config.version)-x64-setup.exe"
         Copy-Item -LiteralPath $package -Destination $setup -Force
         Write-Host "Installer ready: $setup"
         return
@@ -54,14 +54,14 @@ try {
     & $npmCommand run tauri -- build --no-bundle
     if ($LASTEXITCODE -ne 0) { throw "Tauri build failed with exit code $LASTEXITCODE" }
 
-    $executableSource = Join-Path $targetRoot 'release\sobesednik.exe'
+    $executableSource = Join-Path $targetRoot 'release\while-we-talk.exe'
     if (-not (Test-Path -LiteralPath $executableSource -PathType Leaf)) {
-        throw 'The build finished without src-tauri\target\release\sobesednik.exe'
+        throw 'The build finished without src-tauri\target\release\while-we-talk.exe'
     }
 
     $resourcesOutput = Join-Path $outputRoot 'resources'
     New-Item -ItemType Directory -Path $resourcesOutput -Force | Out-Null
-    Copy-Item -LiteralPath $executableSource -Destination (Join-Path $outputRoot 'Sobesednik.exe') -Force
+    Copy-Item -LiteralPath $executableSource -Destination (Join-Path $outputRoot 'WhileWeTalk.exe') -Force
     Copy-Item -LiteralPath $workerSource -Destination (Join-Path $resourcesOutput 'whisper_worker.py') -Force
     foreach ($guideName in @('README.md', 'README-build.md')) {
         $guideSource = Join-Path $buildRoot $guideName
@@ -78,7 +78,7 @@ try {
         Write-Warning 'Antigravity CLI was not copied. Set the path to an installed official client in the app.'
     }
 
-    Write-Host "Build ready: $(Join-Path $outputRoot 'Sobesednik.exe')"
+    Write-Host "Build ready: $(Join-Path $outputRoot 'WhileWeTalk.exe')"
     Write-Host 'This folder still requires the configured local Python, Whisper model and CUDA libraries.'
 } finally {
     $env:PATH = $originalPath

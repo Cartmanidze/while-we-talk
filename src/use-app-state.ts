@@ -17,7 +17,7 @@ export function useAppState() {
     let eventsReceived = 0;
     async function connect() {
       if (!isTauri()) {
-        setConnectionError('Открой «Собеседник» на компьютере, чтобы включить звук и выбрать модель.');
+        setConnectionError('Открой While We Talk на компьютере, чтобы включить звук и выбрать модель.');
         return;
       }
       try {
@@ -74,7 +74,7 @@ export function useAppState() {
     finally { pendingRef.current.delete(command); setPending(new Set(pendingRef.current)); }
   }, []);
   const searchRooms = useCallback(async (query: string): Promise<RoomSearchHit[]> => {
-    if (!isTauri()) throw new Error('Поиск по истории доступен в приложении «Собеседник».');
+    if (!isTauri()) throw new Error('Поиск по истории доступен в приложении While We Talk.');
     return invoke<RoomSearchHit[]>('search_rooms', { query });
   }, []);
   return { state, run, exportRoom, searchRooms, pending, connected, error: connectionError || state.error, dismissError };

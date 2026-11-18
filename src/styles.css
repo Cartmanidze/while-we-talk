@@ -61,7 +61,7 @@ input::placeholder, textarea::placeholder { color: var(--subtle); }
 .desktop-shell { height: 100dvh; display: grid; overflow: hidden; }
 .brand { display: flex; align-items: center; gap: 10px; padding: 2px 0 28px; }
 .brand-mark { display: grid; place-items: center; width: 33px; height: 37px; border-radius: 16px 16px 7px 7px; background: var(--accent); color: var(--bg); }
-.brand strong { font: 500 24px/1.1 var(--display); letter-spacing: -.8px; }
+.brand strong { font: 500 clamp(20px, 1.95vw, 24px)/1.1 var(--display); letter-spacing: -.8px; white-space: nowrap; }
 .session-header, .recording-controls { display: flex; align-items: center; gap: 16px; }
 .session-header { flex-shrink: 0; justify-content: space-between; margin-bottom: 16px; }
 .recording-controls { flex-shrink: 0; }

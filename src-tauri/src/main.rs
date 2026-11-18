@@ -1,5 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    sobesednik_lib::run();
+    while_we_talk_lib::run();
 }

@@ -49,7 +49,7 @@ export function ConnectionCard({ id, state, connected, pending, run, onChange }:
         : <><p>Открой настройки Claude и выключи Extra usage, чтобы не платить сверх подписки.</p><label className="budget-confirmation"><input type="checkbox" checked={false} disabled={locked || !provider.connected || provider.loading || provider.authPending || pending.has('confirm_claude_subscription')} onChange={event => { if (event.target.checked) void run('confirm_claude_subscription'); }} /><span>Extra usage выключено в моём аккаунте Claude</span></label></>}
       <button className="text-button" type="button" onClick={() => void run('open_provider_usage', { provider: id })}>Открыть лимиты Claude ↗</button>
     </div>}
-    {id === 'antigravity' && <p className="connection-budget-note">Собеседник запрашивает ответы без дополнительных кредитов Antigravity.</p>}
+    {id === 'antigravity' && <p className="connection-budget-note">While We Talk запрашивает ответы без дополнительных кредитов Antigravity.</p>}
     <div className="connection-model-area"><ModelPicker id={`connection-model-${id}`} label={`Модель ${name}`} providerId={id} provider={provider} locked={modelLocked} run={run} />
       <p className="connection-small">{provider.models.length ? `Моделей в каталоге: ${provider.models.length}` : 'Список моделей появится после проверки входа.'}{provider.catalogSource ? ` · ${provider.catalogSource}` : ''}</p>
       <button className={`button ${selected ? 'button-secondary' : 'button-primary'}`} type="button" aria-pressed={selected} disabled={locked || !ready || selected || pending.has('update_settings')} onClick={() => onChange({ ...state.settings, provider: id })}>{selected ? 'Выбран для ответов' : 'Выбрать для ответов'}</button>
