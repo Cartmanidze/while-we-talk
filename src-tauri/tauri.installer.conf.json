@@ -1,0 +1,14 @@
+{
+  "bundle": {
+    "resources": {
+      "resources/whisper_worker.py": "resources/whisper_worker.py",
+      "../vendor/agy.exe": "vendor/agy.exe"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["Russian", "English"]
+      }
+    }
+  }
+}

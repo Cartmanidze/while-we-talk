@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Собеседник",
+  "version": "0.2.1",
+  "identifier": "local.sobesednik.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [{
+      "label": "main",
+      "title": "Собеседник",
+      "width": 1220,
+      "height": 820,
+      "minWidth": 900,
+      "minHeight": 650,
+      "backgroundColor": "#f6f3eb",
+      "theme": "Light",
+      "visible": false,
+      "contentProtected": true,
+      "skipTaskbar": true
+    }],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "resources": {"resources/whisper_worker.py": "resources/whisper_worker.py"},
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/icon.ico"],
+    "shortDescription": "Локальная расшифровка речи и ответы по подписке"
+  }
+}
